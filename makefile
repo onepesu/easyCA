@@ -10,7 +10,7 @@ SERVER_DAYS = 730
 
 ca/private/ca.key:
 	mkdir -m 700 -p ca/private
-	openssl genrsa -aes256 -out $@ ${CA_BITS}
+	openssl genrsa ${ENC} -out $@ ${CA_BITS}
 	chmod 400 $@
 
 ca/certs/ca.crt:ca/private/ca.key
@@ -24,7 +24,7 @@ ca/crl/ca.crl:ca/certs/ca.crt
 
 servers/private/%.key:
 	mkdir -m 700 -p servers/private
-	openssl genrsa -aes256 -out $@ ${SERVER_BITS}
+	openssl genrsa ${ENC} -out $@ ${SERVER_BITS}
 	chmod 400 $@
 
 servers/csr/%.csr:servers/private/${HOST}.key
