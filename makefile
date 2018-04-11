@@ -7,34 +7,44 @@ SERVER_BITS = 2048
 SERVER_DAYS = 730
 
 .PRECIOUS: ca/private/ca.key servers/private/%.key
+.PRECIOUS: %/private %/certs ca/crl ca/newcerts servers/csr
 
-ca/private/ca.key:
-	mkdir -m 700 -p ca/private
+%/private:
+	mkdir -m 700 -p $@
+
+%/certs:
+	mkdir -p $@
+
+ca/crl:
+	mkdir -p $@
+
+ca/newcerts:
+	mkdir -p $@
+
+servers/csr:
+	mkdir -p $@
+
+ca/private/ca.key: | ca/private
 	openssl genrsa ${ENC} -out $@ ${CA_BITS}
 	chmod 400 $@
 
-ca/certs/ca.crt:ca/private/ca.key
-	mkdir -p ca/certs
+ca/certs/ca.crt:ca/private/ca.key | ca/certs ca/newcerts
 	openssl req -new -x509 -sha256 -config ${CA_CNF} -days ${CA_DAYS} -key $< -out $@
 	chmod 444 $@
 
-ca/crl/ca.crl:ca/certs/ca.crt
-	mkdir -p ca/crl
+ca/crl/ca.crl:ca/certs/ca.crt | ca/crl
 	openssl ca -gencrl -config ${CA_CNF} -out $@
 
-servers/private/%.key:
-	mkdir -m 700 -p servers/private
+servers/private/%.key: | servers/private
 	openssl genrsa ${ENC} -out $@ ${SERVER_BITS}
 	chmod 400 $@
 
-servers/csr/%.csr:servers/private/${HOST}.key
-	mkdir -p servers/csr
+servers/csr/%.csr:servers/private/${HOST}.key | servers/csr
 	export DNS=$*; openssl req -config ${SERVER_CNF} -key $< -new -sha256 -out $@
 
-servers/csr/%.ext:
+servers/csr/%.ext: | servers/csr
 	echo subjectAltName=DNS:$* > $@
 
-servers/certs/%.crt:servers/csr/%.csr servers/csr/%.ext
-	mkdir -p ca/newcerts servers/certs
+servers/certs/%.crt:servers/csr/%.csr servers/csr/%.ext ca/certs/ca.crt | servers/certs
 	openssl ca -batch -config ${CA_CNF} -days ${SERVER_DAYS} -in $< -out $@ -extfile $(word 2,$^)
 	chmod 444 $@
