@@ -29,8 +29,11 @@ ca/private/ca.key: | ca/private
 	openssl genrsa $(ENC) -out $@ $(CA_BITS)
 	chmod 400 $@
 
-ca/certs/ca.crt: ca/private/ca.key | ca/certs ca/newcerts
-	openssl req -new -x509 -sha256 -config $(CA_CNF) -days $(CA_DAYS) -key $< -out $@
+ca/ca.cnf: $(CA_CNF)
+	sed 's/{{emailAddress}}/$(EMAIL)/g' $< > $@
+
+ca/certs/ca.crt: ca/private/ca.key ca/ca.cnf | ca/certs ca/newcerts
+	openssl req -new -x509 -sha256 -config $(word 2,$^) -days $(CA_DAYS) -key $< -out $@
 	chmod 444 $@
 
 ca/crl/ca.crl: ca/certs/ca.crt | ca/crl

@@ -2,6 +2,7 @@
 
 email_default
 
+ca/ca.cnf
 ca/index.txt
 ca/serial
 
