@@ -5,12 +5,12 @@ This project is intended to be used during development only to easily create cer
 How to create your first certificate
 ------------------------------------
 First clone the project and create the root certificate.
-* `cd /root`
+* `cd /etc`
 * `sudo git clone https://github.com/onepesu/easyCA.git`
 * `cd easyCA`
 * `sudo make ca/certs/ca.crt`
 
-`/root/easyCA/ca/certs/ca.crt` is the only certificate you need to install to your system/emulators/browsers. Detailed description on how to do so is found in the project's wiki. This must be done only once per device.
+`/etc/easyCA/ca/certs/ca.crt` is the only certificate you need to install to your system/emulators/browsers. Detailed description on how to do so is found in the project's wiki. This must be done only once per device.
 
 Then proceed by creating a certificate for each different server you would like to use. The first time you'll try to create a certificate, a key for this host will be created as well.
 * `sudo make servers/certs/example.dev.crt`
