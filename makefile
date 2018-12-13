@@ -1,4 +1,5 @@
 HOST = $(shell hostname)
+EMAIL = $(file < email_default)
 CA_CNF = ca/openssl.cnf
 CA_BITS = 4096
 CA_DAYS = 7300
@@ -25,15 +26,15 @@ servers/csr:
 	mkdir -p $@
 
 ca/private/ca.key: | ca/private
-	openssl genrsa ${ENC} -out $@ ${CA_BITS}
+	openssl genrsa $(ENC) -out $@ $(CA_BITS)
 	chmod 400 $@
 
-ca/certs/ca.crt:ca/private/ca.key | ca/certs ca/newcerts
-	openssl req -new -x509 -sha256 -config ${CA_CNF} -days ${CA_DAYS} -key $< -out $@
+ca/certs/ca.crt: ca/private/ca.key | ca/certs ca/newcerts
+	openssl req -new -x509 -sha256 -config $(CA_CNF) -days $(CA_DAYS) -key $< -out $@
 	chmod 444 $@
 
-ca/crl/ca.crl:ca/certs/ca.crt | ca/crl
-	openssl ca -gencrl -config ${CA_CNF} -out $@
+ca/crl/ca.crl: ca/certs/ca.crt | ca/crl
+	openssl ca -gencrl -config $(CA_CNF) -out $@
 
 ca/index.txt:
 	touch $@
@@ -42,15 +43,18 @@ ca/serial:
 	echo 1000 > $@
 
 servers/private/%.key: | servers/private
-	openssl genrsa ${ENC} -out $@ ${SERVER_BITS}
+	openssl genrsa $(ENC) -out $@ $(SERVER_BITS)
 	chmod 400 $@
 
-servers/csr/%.csr:servers/private/${HOST}.key | servers/csr
-	export DNS=$*; openssl req -config ${SERVER_CNF} -key $< -new -sha256 -out $@
+servers/%.cnf: $(SERVER_CNF)
+	sed 's/{{emailAddress}}/$(EMAIL)/g;s/{{commonName}}/$*/g' $< > $@
+
+servers/csr/%.csr: servers/private/$(HOST).key servers/%.cnf | servers/csr
+	openssl req -config $(word 2,$^) -key $< -new -sha256 -out $@
 
 servers/csr/%.ext: | servers/csr
 	echo subjectAltName=DNS:$* > $@
 
-servers/certs/%.crt:servers/csr/%.csr servers/csr/%.ext ca/certs/ca.crt | servers/certs ca/index.txt ca/serial
-	openssl ca -batch -config ${CA_CNF} -days ${SERVER_DAYS} -in $< -out $@ -extfile $(word 2,$^)
+servers/certs/%.crt: servers/csr/%.csr servers/csr/%.ext ca/certs/ca.crt | servers/certs ca/index.txt ca/serial
+	openssl ca -batch -config $(CA_CNF) -days $(SERVER_DAYS) -in $< -out $@ -extfile $(word 2,$^)
 	chmod 444 $@

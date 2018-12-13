@@ -51,8 +51,8 @@ stateOrProvinceName_default     = England
 localityName_default            = London
 0.organizationName_default      = Skynet
 organizationalUnitName_default  = Skynet Servers
-commonName_default              = $ENV::DNS
-emailAddress_default            =
+commonName_default              = {{commonName}}
+emailAddress_default            = {{emailAddress}}
 
 [ v3_ca ]
 # Extensions for a typical intermediate CA (`man x509v3_config`).
