@@ -35,6 +35,12 @@ ca/certs/ca.crt:ca/private/ca.key | ca/certs ca/newcerts
 ca/crl/ca.crl:ca/certs/ca.crt | ca/crl
 	openssl ca -gencrl -config ${CA_CNF} -out $@
 
+ca/index.txt:
+	touch $@
+
+ca/serial:
+	echo 1000 > $@
+
 servers/private/%.key: | servers/private
 	openssl genrsa ${ENC} -out $@ ${SERVER_BITS}
 	chmod 400 $@
@@ -45,6 +51,6 @@ servers/csr/%.csr:servers/private/${HOST}.key | servers/csr
 servers/csr/%.ext: | servers/csr
 	echo subjectAltName=DNS:$* > $@
 
-servers/certs/%.crt:servers/csr/%.csr servers/csr/%.ext ca/certs/ca.crt | servers/certs
+servers/certs/%.crt:servers/csr/%.csr servers/csr/%.ext ca/certs/ca.crt | servers/certs ca/index.txt ca/serial
 	openssl ca -batch -config ${CA_CNF} -days ${SERVER_DAYS} -in $< -out $@ -extfile $(word 2,$^)
 	chmod 444 $@

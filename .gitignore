@@ -1,5 +1,8 @@
 *.old
 
+ca/index.txt
+ca/serial
+
 certs/
 newcerts/
 private/
