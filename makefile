@@ -1,11 +1,14 @@
 HOST = $(shell hostname)
 EMAIL = $(file < email_default)
+ALGO = RSA
 CA_CNF = ca/openssl.cnf
-CA_BITS = 4096
 CA_DAYS = 7300
+CA_BITS = 4096
+CA_OPTS = rsa_keygen_bits:$(CA_BITS)
 SERVER_CNF = servers/openssl.cnf
-SERVER_BITS = 2048
 SERVER_DAYS = 730
+SERVER_BITS = 2048
+SERVER_OPTS = rsa_keygen_bits:$(SERVER_BITS)
 
 .PRECIOUS: ca/private/ca.key servers/private/%.key
 .PRECIOUS: %/private %/certs ca/crl ca/newcerts servers/csr
@@ -26,7 +29,7 @@ servers/csr:
 	mkdir -p $@
 
 ca/private/ca.key: | ca/private
-	openssl genrsa $(ENC) -out $@ $(CA_BITS)
+	openssl genpkey -algorithm $(ALGO) -pkeyopt $(CA_OPTS) -out $@
 	chmod 400 $@
 
 ca/ca.cnf: $(CA_CNF)
@@ -46,7 +49,7 @@ ca/serial:
 	echo 1000 > $@
 
 servers/private/%.key: | servers/private
-	openssl genrsa $(ENC) -out $@ $(SERVER_BITS)
+	openssl genpkey -algorithm $(ALGO) -pkeyopt $(SERVER_OPTS) -out $@
 	chmod 400 $@
 
 servers/%.cnf: $(SERVER_CNF)
