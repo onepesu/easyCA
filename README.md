@@ -14,3 +14,8 @@ First clone the project and create the root certificate.
 
 Then proceed by creating a certificate for each different server you would like to use. The first time you'll try to create a certificate, a key for this host will be created as well.
 * `sudo make servers/certs/example.local.crt`
+
+How to install your certificates
+--------------------------------
+
+Please follow the [wiki](https://github.com/onepesu/easyCA/wiki) instructions for your OS/server/browser combination
