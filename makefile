@@ -1,4 +1,4 @@
-HOST = $(shell hostname)
+HOST = $(shell hostnamectl --static 2> /dev/null || hostname)
 EMAIL = $(file < email_default)
 ALGO = RSA
 CA_CNF = ca/openssl.cnf
