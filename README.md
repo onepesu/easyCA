@@ -9,7 +9,7 @@ First clone the project and create the root certificate.
 * `cd /etc`
 * `sudo git clone https://github.com/onepesu/easyCA.git`
 * `cd easyCA`
-* if you have make 4.2+, you can optionally add a default email, by `echo <email> | sudo tee /etc/easyCA/email_default` > /dev/null
+* if you have make 4.2+, you can optionally add a default email, by `echo <email> | sudo tee /etc/easyCA/email_default > /dev/null`
 * `sudo make ca/certs/ca.crt`
 
 This needs to be done only once.
