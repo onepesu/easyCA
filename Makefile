@@ -46,9 +46,6 @@ servers/private/server.key: | servers/private
 servers/csr/%.csr: servers/private/server.key $(SERVER_CONF) | servers/csr
 	COMMON_NAME_DEFAULT=$* openssl req -config $(word 2,$^) -key $< -new -sha256 -out $@
 
-servers/csr/%.ext: | servers/csr
-	echo subjectAltName=DNS:$* > $@
-
-servers/certs/%.crt: servers/csr/%.csr servers/csr/%.ext ca/certs/ca.crt | servers/certs ca/index.txt ca/serial
-	openssl ca -batch -config $(CA_CONF) -days $(SERVER_DAYS) -in $< -out $@ -extfile $(word 2,$^)
+servers/certs/%.crt: servers/csr/%.csr ca/certs/ca.crt | servers/certs ca/index.txt ca/serial
+	openssl ca -batch -config $(CA_CONF) -days $(SERVER_DAYS) -in $< -out $@
 	chmod 444 $@
