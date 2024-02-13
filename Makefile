@@ -1,5 +1,4 @@
 HOST = $(shell hostnamectl --static 2> /dev/null || hostname)
-EMAIL = $(file < email_default)
 ALGO = RSA
 CA_CONF = ca/openssl.conf
 CA_DAYS = 7300
@@ -32,10 +31,7 @@ ca/private/ca.key: | ca/private
 	openssl genpkey -algorithm $(ALGO) -pkeyopt $(CA_OPTS) -out $@
 	chmod 400 $@
 
-ca/ca.conf: $(CA_CONF)
-	sed 's/{{emailAddress}}/$(EMAIL)/g' $< > $@
-
-ca/certs/ca.crt: ca/private/ca.key ca/ca.conf | ca/certs ca/newcerts
+ca/certs/ca.crt: ca/private/ca.key $(CA_CONF) | ca/certs ca/newcerts
 	openssl req -new -x509 -sha256 -config $(word 2,$^) -days $(CA_DAYS) -key $< -out $@
 	chmod 444 $@
 
@@ -53,7 +49,7 @@ servers/private/%.key: | servers/private
 	chmod 400 $@
 
 servers/%.conf: $(SERVER_CONF)
-	sed 's/{{emailAddress}}/$(EMAIL)/g;s/{{commonName}}/$*/g' $< > $@
+	sed 's/{{commonName}}/$*/g' $< > $@
 
 servers/csr/%.csr: servers/private/$(HOST).key servers/%.conf | servers/csr
 	openssl req -config $(word 2,$^) -key $< -new -sha256 -out $@
