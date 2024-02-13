@@ -1,13 +1,9 @@
 HOST = $(shell hostnamectl --static 2> /dev/null || hostname)
-ALGO = RSA
+ALGO = ED25519
 CA_CONF = ca/openssl.conf
 CA_DAYS = 7300
-CA_BITS = 4096
-CA_OPTS = rsa_keygen_bits:$(CA_BITS)
 SERVER_CONF = servers/openssl.conf
 SERVER_DAYS = 730
-SERVER_BITS = 2048
-SERVER_OPTS = rsa_keygen_bits:$(SERVER_BITS)
 
 .PRECIOUS: ca/private/ca.key servers/private/%.key
 .PRECIOUS: %/private %/certs ca/crl ca/newcerts servers/csr
@@ -28,7 +24,7 @@ servers/csr:
 	mkdir -p $@
 
 ca/private/ca.key: | ca/private
-	openssl genpkey -algorithm $(ALGO) -pkeyopt $(CA_OPTS) -out $@
+	openssl genpkey -algorithm $(ALGO) -out $@
 	chmod 400 $@
 
 ca/certs/ca.crt: ca/private/ca.key $(CA_CONF) | ca/certs ca/newcerts
@@ -45,7 +41,7 @@ ca/serial:
 	echo 1000 > $@
 
 servers/private/%.key: | servers/private
-	openssl genpkey -algorithm $(ALGO) -pkeyopt $(SERVER_OPTS) -out $@
+	openssl genpkey -algorithm $(ALGO) -out $@
 	chmod 400 $@
 
 servers/%.conf: $(SERVER_CONF)
