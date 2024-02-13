@@ -1,11 +1,10 @@
-HOST = $(shell hostnamectl --static 2> /dev/null || hostname)
 ALGO = ED25519
 CA_CONF = ca/openssl.conf
 CA_DAYS = 7300
 SERVER_CONF = servers/openssl.conf
 SERVER_DAYS = 730
 
-.PRECIOUS: ca/private/ca.key servers/private/%.key
+.PRECIOUS: ca/private/ca.key servers/private/server.key
 .PRECIOUS: %/private %/certs ca/crl ca/newcerts servers/csr
 
 %/private:
@@ -40,15 +39,12 @@ ca/index.txt:
 ca/serial:
 	echo 1000 > $@
 
-servers/private/%.key: | servers/private
+servers/private/server.key: | servers/private
 	openssl genpkey -algorithm $(ALGO) -out $@
 	chmod 400 $@
 
-servers/%.conf: $(SERVER_CONF)
-	sed 's/{{commonName}}/$*/g' $< > $@
-
-servers/csr/%.csr: servers/private/$(HOST).key servers/%.conf | servers/csr
-	openssl req -config $(word 2,$^) -key $< -new -sha256 -out $@
+servers/csr/%.csr: servers/private/server.key $(SERVER_CONF) | servers/csr
+	COMMON_NAME_DEFAULT=$* openssl req -config $(word 2,$^) -key $< -new -sha256 -out $@
 
 servers/csr/%.ext: | servers/csr
 	echo subjectAltName=DNS:$* > $@
